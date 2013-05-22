@@ -1,0 +1,6 @@
+#!/bin/bash
+java -jar `dirname $0`/../target/scala-2.10/nuvoc-assembly-0.1.1.jar $*
+
+
+
+
