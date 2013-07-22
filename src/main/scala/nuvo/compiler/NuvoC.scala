@@ -43,9 +43,12 @@ object NuvoC extends Parser {
   }
 
   def parseArgs(args: Array[String]): Command = {
-    val files = args.filter(_.contains(Config.srcExtension)).toList
+    val files = if (args.contains(Config.compileAllNuvoCFilesOpt)) recursivelyListFiles(System.getProperty("user.dir") + File.separator + Config.nuvocDir, Config.srcExtension)
+                else args.filter(_.contains(Config.srcExtension)).toList
+
     val idx = args.indexOf("-o")
-    val outpath = if (idx != -1) args(idx + 1) else System.getProperty("user.dir")
+    val outpath = if (args.contains(Config.compileAllNuvoCFilesOpt)) System.getProperty("user.dir") + File.separatorChar + Config.generatedDir
+                  else if (idx != -1) args(idx + 1) else System.getProperty("user.dir")
 
     if (args.length < 1) Help
     else

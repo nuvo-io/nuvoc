@@ -66,8 +66,14 @@ object NuvoSFSerializer extends Serializer {
       case p: PrimitiveType => { List(Line(s"$buf.put$typeName($scope" + s"$attrName)")) }
 
       case FunctionType(from, to) => { List(Line(s"$buf.putObject($scope"+ s"$attrName, JavaSF)")) }
-      // case FunctionType(from, to) => { List(Line(s"$buf.putString($scope"+ s"$attrName"+".getClass.getName)")) }
-
+        /*
+      case FunctionType(from, to) => { List(
+        Line(s"val $prefix"+"funName = " + s"$scope"+ s"$attrName"+".getClass.getName"),
+        Line(s"println($prefix"+"funName)"),
+        Line(s"$buf.putString($prefix"+"funName)")
+      )
+      }
+          */
       case a: ArrayType => {
         val arrayElemTypeName = a.elemType.name
         val arrayserializer = a.elemType match {
@@ -243,7 +249,14 @@ object NuvoSFSerializer extends Serializer {
       case p: PrimitiveType => List(Line(s"val $attrName = $buf.get$typeName()"))
 
       case FunctionType(from, to) => { List(Line(s"val $attrName = $buf.getObject[$from => $to](JavaSF)")) }
-
+        /*
+      case FunctionType(from, to) => {
+        List(
+          Line(s"val $prefix"+"FunName = buf.getString()"),
+          Line(s"val $attrName = Class.forName($prefix"+"FunName).newInstance"+s".asInstanceOf[$from => $to]")
+        )
+      }
+          */
       case RawBufferType => {
         List(
           Line(s"val $len = $buf.getInt()"),

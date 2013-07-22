@@ -268,16 +268,17 @@ class Parser extends JavaTokenParsers {
 
   def tupleKeyDecl = opt("lazy"~"val"~"key"~"="~keyList) ^^ {
     case Some("lazy"~"val"~"key"~"="~keyList) => {
-      TupleKey(keyList)
+      if (keyList.isEmpty) NoKey else TupleKey(keyList)
     }
     case _ => {
       NoKey
     }
   }
 
-  def keyList = atomKeyList | tupleKeyList
+  def keyList = atomKeyList | tupleKeyList | emptyKeyList
   def tupleKeyList = "("~repsep(ident, ",")~")" ^^ (x => x._1._2)
   def atomKeyList = ident ^^ {case ident => List(ident)}
+  def emptyKeyList = "("~")" ^^ { _ => List() }
 
 
   def qualifier = ("private" | "public" | "protected")~opt("["~repsep(name, ".")~"]")

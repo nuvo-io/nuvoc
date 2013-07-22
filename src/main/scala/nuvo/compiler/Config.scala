@@ -32,6 +32,8 @@ object Config {
   val binExtension = ".class"
   val srcExtension = ".scala"
   val targetDir = "./target"
+  val nuvocDir = "./src/main/nuvoc"
+  val generatedDir = "./src/main/generated"
   val deployDir = "deploy"
   val anonfunTag = "anonfun"
   val classDir = "classes"
@@ -39,6 +41,9 @@ object Config {
   val jarcmd = "jar"
   val jaropt = "cf"
   val jarDirOpt = "-C"
+  val compileAllNuvoCFilesOpt = "-a"
+
+
 
   val tupleType = "nuvo.core.Tuple"
 }
