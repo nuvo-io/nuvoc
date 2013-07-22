@@ -211,6 +211,13 @@ object NuvoSFSerializer extends Serializer {
       val nameLen = fqName.length()
       nt.key match {
         case NoKey => List[Line]()
+
+        case TupleKey(Nil) => {
+          List(
+            Line(s"final def serializeKeyNuvoSF($buf: RawBuffer, t: " + nt.name + ") = ()"),
+            Line("")
+          )
+        }
         case TupleKey(attrNames) => {
           List(
             Line(s"final def serializeKeyNuvoSF($buf: RawBuffer, t: " + nt.name + ") = {"),
@@ -397,6 +404,11 @@ object NuvoSFSerializer extends Serializer {
       val result = prefix + "result"
       nt.key match {
         case NoKey => List()
+
+        case TupleKey(Nil) => {
+          List(Line(s"final def deserializeKeyNuvoSF($buf: RawBuffer) = ()"))
+        }
+
         case TupleKey(attrNames) => {
           val returnValue =  attrNames match {
             case List(aname) => aname
@@ -442,6 +454,10 @@ object NuvoSFSerializer extends Serializer {
       val result = prefix + "result"
       nt.key match {
         case NoKey => List()
+
+        case TupleKey(Nil) =>
+          List(Line(s"final def deserializeKeyNoHeaderNuvoSF($buf: RawBuffer) = ()"))
+
         case TupleKey(attrNames) => {
           val returnValue =  attrNames match {
             case List(aname) => aname

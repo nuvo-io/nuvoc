@@ -44,6 +44,26 @@ class BasicNuvoTypeSpec extends FlatSpec {
     assert(success())
   }
 
+  it should "parse a case class  with empty key" in {
+    val parser = new Parser
+    val caseType =
+      """
+        case class Point(x: Int, y: Int) extends Tuple {
+          lazy val key = ()
+        }
+      """
+
+    val nt = parser.parseAll(parser.root, caseType)
+    val success = () => {
+      if (nt.successful) true
+      else {
+        println(nt)
+        false
+      }
+    }
+    assert(success())
+  }
+
 
   it should "parse an algebraic data type" in {
     val parser = new Parser

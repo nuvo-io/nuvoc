@@ -70,7 +70,6 @@ case class ListType(elemType: Type) extends Type("List", 4)
 
 abstract class KeyType
 case class PrimitiveKey(attribute: String) extends KeyType
-case class CaseKey(keyType: CaseType) extends KeyType
 case class TupleKey(attributes: List[String]) extends KeyType
 case object NoKey extends KeyType
 
@@ -272,9 +271,7 @@ class Parser extends JavaTokenParsers {
   def keyDecl =   tupleKeyDecl
 
   def tupleKeyDecl = opt("lazy"~"val"~"key"~"="~keyList) ^^ {
-    case Some("lazy"~"val"~"key"~"="~keyList) => {
-      if (keyList.isEmpty) NoKey else TupleKey(keyList)
-    }
+    case Some("lazy"~"val"~"key"~"="~keyList) => TupleKey(keyList)
     case _ => {
       NoKey
     }
