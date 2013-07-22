@@ -147,6 +147,11 @@ class Parser extends JavaTokenParsers {
       superTypeMap = superTypeMap + (ident -> at)
       at
     }
+    case _~"abstract"~"class"~ident~None~Some("extends"~baseTypeDecl)~None => {
+      val at = AbstractNuvoType(ident, currentPackage, List(), NoKey)
+      superTypeMap = superTypeMap + (ident -> at)
+      at
+    }
     case _~"abstract"~"class"~ident~Some(abstractValListDecl)~Some("extends"~baseTypeDecl)~None => {
       val at = AbstractNuvoType(ident, currentPackage, abstractValListDecl, NoKey)
       superTypeMap = superTypeMap + (ident -> at)

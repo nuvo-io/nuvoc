@@ -13,7 +13,7 @@ class BasicNuvoTypeSpec extends FlatSpec {
     val parser = new Parser()
     val abstractNuvoType =
       """
-        sealed abstract class AbstractNuvoType
+        sealed abstract class AbstractNuvoType  extends Tuple
       """
     val nt = parser.parseAll(parser.root, abstractNuvoType)
     val success = () => {
@@ -66,6 +66,32 @@ class BasicNuvoTypeSpec extends FlatSpec {
         case class Triangle(override val color: String, ts: Long, x: Float, y: Float, base: Float, height: Float) extends Shape(x, y)
       """
 
+    val nt = parser.parseAll(parser.root, caseType)
+
+    val success = () => {
+      if (nt.successful) true
+      else {
+        println(nt)
+        false
+      }
+    }
+
+    assert(success())
+  }
+
+  it should "parse Paxos Types" in {
+    val parser = new Parser
+    val caseType = """
+        abstract class PaxosSamples extends Tuple
+
+        case class Accepted(id: Int, statekey: Long, acceptor: Uuid, serialNumber: Int, proposer: Uuid, epoch: Int) extends PaxosSamples {
+          lazy val key = id
+        }
+
+        case class Accept(id: Int, statekey: Long, serialNumber: Int, proposer: Uuid, epoch: Int, value: Array[Byte]) extends PaxosSamples {
+          lazy val key = id
+        }
+      """
     val nt = parser.parseAll(parser.root, caseType)
 
     val success = () => {
