@@ -44,6 +44,23 @@ class BasicNuvoTypeSpec extends FlatSpec {
     assert(success())
   }
 
+  it should "parse a case class with optional attributes" in {
+    val parser = new Parser
+    val caseType =
+      """
+        case class Point(x: Int, y: Option[Int])
+      """
+
+    val nt = parser.parseAll(parser.root, caseType)
+    val success = () => {
+      if (nt.successful) true
+      else {
+        println(nt)
+        false
+      }
+    }
+    assert(success())
+  }
   it should "parse a case class  with empty key" in {
     val parser = new Parser
     val caseType =

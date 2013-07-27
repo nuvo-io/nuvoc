@@ -5,10 +5,21 @@ abstract class GeneratedCode
 case class Line(line: String) extends GeneratedCode
 case class Block(block: List[GeneratedCode]) extends GeneratedCode
 
+import java.security.MessageDigest
+
 object Generator {
   val NDRGenerator  = new Generator(List(NuvoSF))
   val JSONGenerator = new Generator(List(JsonSF))
   val AllGenerator  = new Generator(List(NuvoSF, JsonSF))
+  def  md5Gen = MessageDigest.getInstance("MD5")
+
+
+  def generateTypeHash(typeName: String): (Long, Long) = {
+    val hash = md5Gen.digest(typeName.getBytes)
+    val buf = java.nio.ByteBuffer.wrap(hash)
+    (buf.getLong(), buf.getLong())
+  }
+
 }
 /**
  * This class generates the serializers for the list of formats passed as argument
@@ -17,7 +28,6 @@ object Generator {
 class Generator(val encoders: List[SerializationFormat]) {
 
   def generatePreamble(tu: TranslationUnit): List[GeneratedCode] = {
-
     tu.pkg.map {
       s => List(
         Line("package " + tu.pkg.get),
@@ -27,12 +37,41 @@ class Generator(val encoders: List[SerializationFormat]) {
         Line("import nuvo.nio._"),
         Line("import nuvo.core.Tuple"),
         Line("")
-      )} getOrElse(Nil) ++
-    List (
-      // Line("import nuvo.compiler._"),
-      Line("import nuvo.nio._"),
-      Line("")
-    )
+      ) ::: generateTypeRegistration(tu)} getOrElse(Nil) ++
+      List (
+        // Line("import nuvo.compiler._"),
+        Line("import nuvo.nio._"),
+        Line("")
+      ) ::: generateTypeRegistration(tu)
+  }
+
+  def generateTypeHashDeclaration(typeName: String): String = {
+    val (low, high) = Generator.generateTypeHash(typeName)
+    s"val typeHash = ($low"+s"L, $high"+s"L) // $typeName"
+  }
+
+  def generateTypeRegistration(tu: TranslationUnit): List[GeneratedCode] = {
+    tu.types.filter {
+      case cnt: ConcreteNuvoType => true
+      case _ => false
+    }.map(t => "\"" + t.pkg + "." + t.name + "\"") match {
+      case x::xs => {
+        val name = tu.types.head.name
+        List(
+          Line(s"object $name"+"TypeRegistration {"),
+          Block(
+            List(
+              Line("val typeList = List(" + (x /: xs) (_ + ", " + _ ) + ")"),
+              Line(""),
+              Line("var registerTypeOK = {typeList.foreach(nuvo.nio.SerializerCache.registerType(_)); true}")
+            )
+          ),
+          Line("}"),
+          Line("")
+        )
+      }
+      case Nil => List()
+    }
   }
 
   def generateTranslationUnit(tu: TranslationUnit): List[GeneratedCode] = {
@@ -44,7 +83,7 @@ class Generator(val encoders: List[SerializationFormat]) {
             List(
               Line("object "+  cnt.name +s"Helper {"),
               Line(""),
-              Block(generateType(cnt)),
+              Block(Line(generateTypeHashDeclaration(cnt.pkg + "." + cnt.name)) :: generateType(cnt)),
               Line("}"),
               Line("")
             )
@@ -58,18 +97,18 @@ class Generator(val encoders: List[SerializationFormat]) {
   def generateType(nt: NuvoType): List[GeneratedCode] = {
 
     val body = nt.key match {
-      case NoKey => (
+      case NoKey =>
         generateSerializerDispatcher(nt) ++
-        generateSerializer(nt) ++
-        generateDeserializerDispatcher(nt) ++
-        generateDeserializer(nt))
-      case _ =>  (
+          generateSerializer(nt) ++
+          generateDeserializerDispatcher(nt) ++
+          generateDeserializer(nt)
+      case _ =>
         generateSerializerDispatcher(nt) ++
-        generateKeySerializerDispatcher(nt) ++
-        generateSerializer(nt) ++
-        generateDeserializerDispatcher(nt) ++
-        generateKeyDeserializerDispatcher(nt) ++
-        generateDeserializer(nt))
+          generateKeySerializerDispatcher(nt) ++
+          generateSerializer(nt) ++
+          generateDeserializerDispatcher(nt) ++
+          generateKeyDeserializerDispatcher(nt) ++
+          generateDeserializer(nt)
     }
     body
 

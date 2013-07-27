@@ -126,8 +126,10 @@ object NuvoSFSerializer extends Serializer {
             Line("buf.order(ByteOrder.nativeOrder)"),
             Line(s"val $startPosition = $buf.position"),
             Line(s"$buf.position($startPosition + 4)"),
-            Line(s"$buf.putInt($nameLen)"),
-            Line(s"$buf.put(" + "\""+ fqName +  "\".getBytes())")
+            Line(s"$buf.putLong(typeHash._1)"),
+            Line(s"$buf.putLong(typeHash._2)")
+            // Line(s"$buf.putInt($nameLen)"),
+            // Line(s"$buf.put(" + "\""+ fqName +  "\".getBytes())")
           ) :::
             cnt.attributes.map(encodeAttribute(buf)).flatten :::
             List(
@@ -184,8 +186,10 @@ object NuvoSFSerializer extends Serializer {
           Block {
             List(  Line(s"val $startPosition = $buf.position"),
               Line(s"$buf.position($startPosition + 4)"),
-              Line(s"$buf.putInt($nameLen)"),
-              Line(s"$buf.put(" + "\""+ fqName +  "\".getBytes())")
+              // Line(s"$buf.putInt($nameLen)"),
+              // Line(s"$buf.put(" + "\""+ fqName +  "\".getBytes())")
+              Line(s"$buf.putLong(typeHash._1)"),
+              Line(s"$buf.putLong(typeHash._2)")
             ) :::
               (for (attr <- tupleAttr)
               yield encodeAttribute(buf, scope)(Attribute(attr.aname, attr.atype))).flatten :::
@@ -224,8 +228,10 @@ object NuvoSFSerializer extends Serializer {
             Block {
               List(  Line(s"val $startPosition = $buf.position"),
                 Line(s"$buf.position($startPosition + 4)"),
-                Line(s"$buf.putInt($nameLen)"),
-                Line(s"$buf.put(" + "\""+ fqName +  "\".getBytes())")
+                // Line(s"$buf.putInt($nameLen)"),
+                // Line(s"$buf.put(" + "\""+ fqName +  "\".getBytes())")
+                Line(s"$buf.putLong(typeHash._1)"),
+                Line(s"$buf.putLong(typeHash._2)")
               ) :::
                 ((for (aname <- attrNames;
                        attr <- nt.attributes.find(_.aname == aname)) yield encodeAttribute(buf)(attr)).flatten) :::
@@ -347,11 +353,13 @@ object NuvoSFSerializer extends Serializer {
             Line(s"val $serializeDataLength =  ($MEL & 0x00ffffff)"),
             Line(s"$buf.order($endianness match { case LittleEndian.value => LittleEndian; case BigEndian.value  => BigEndian; case _ => { $buf.position($buf.position + $serializeDataLength) ; throw new RuntimeException("+ "\"Invalid Format\")}})"),
             Line(s"val $startPosition =  $buf.position"),
-            Line(s"val $nameLen = $buf.getInt()"),
-            Line(s"val $bbuf = new Array[Byte]($nameLen)"),
-            Line(s"$buf.get($bbuf)"),
-            Line(s"val $fqName = new String($bbuf)"),
-            Line(s"if ($fqName != " + "\"" + actualTypeName + "\"" + ") throw new RuntimeException(\"Cannot deserialize  +" + fqName + "+ as a " + actualTypeName +"\")")
+            Line("val wireTypeHash = (buf.getLong, buf.getLong)"),
+            Line("if (typeHash != wireTypeHash) throw new RuntimeException(\"Mismatching TypeHash, you ma be trying to deserialize using the wrong helper\")")
+            // Line(s"val $nameLen = $buf.getInt()"),
+            // Line(s"val $bbuf = new Array[Byte]($nameLen)"),
+            // Line(s"$buf.get($bbuf)"),
+            // Line(s"val $fqName = new String($bbuf)"),
+            // Line(s"if ($fqName != " + "\"" + actualTypeName + "\"" + ") throw new RuntimeException(\"Cannot deserialize  +" + fqName + "+ as a " + actualTypeName +"\")")
           ) :::
             (nt.attributes.map(decodeAttribute(buf)).flatten) :::
             List(
@@ -425,11 +433,13 @@ object NuvoSFSerializer extends Serializer {
                 Line(s"val $serializeDataLength =  ($MEL & 0x00ffffff)"),
                 Line(s"$buf.order($endianness match { case LittleEndian.value => LittleEndian; case BigEndian.value  => BigEndian; case _ => { $buf.position($buf.position + $serializeDataLength) ; throw new RuntimeException("+ "\"Invalid Format\")}})"),
                 Line(s"val $startPosition =  $buf.position"),
-                Line(s"val $nameLen = $buf.getInt()"),
-                Line(s"val $bbuf = new Array[Byte]($nameLen)"),
-                Line(s"$buf.get($bbuf)"),
-                Line(s"val $fqName = new String($bbuf)"),
-                Line(s"if ($fqName != " + "\"" + actualTypeName + "\"" + ") throw new RuntimeException(\"Cannot deserialize  +" + fqName + "+ as a " + actualTypeName +"\")")
+                Line("val wireTyepHash = (buf.getLong, buf.getLong)"),
+                Line("if (typeHash != wireTyepHash) throw new RuntimeException(\"Mismatching TypeHash, you ma be trying to deserialize using the wrong helper\")")
+//                Line(s"val $nameLen = $buf.getInt()"),
+//                Line(s"val $bbuf = new Array[Byte]($nameLen)"),
+//                Line(s"$buf.get($bbuf)"),
+//                Line(s"val $fqName = new String($bbuf)"),
+//                Line(s"if ($fqName != " + "\"" + actualTypeName + "\"" + ") throw new RuntimeException(\"Cannot deserialize  +" + fqName + "+ as a " + actualTypeName +"\")")
               ) :::
 
                 (for (aname <- attrNames;

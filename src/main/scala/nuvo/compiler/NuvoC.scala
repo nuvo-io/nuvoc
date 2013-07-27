@@ -183,8 +183,6 @@ object NuvoC extends Parser {
 
   def main(args: Array[String]) {
 
-
-
     parseArgs(args) match {
       case Help => {
         println(Config.helpMessage)

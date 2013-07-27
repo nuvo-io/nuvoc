@@ -235,7 +235,8 @@ class Parser extends JavaTokenParsers {
 
 
   // def atype = byteBufferType | primitiveType | arrayType | listType | caseType
-  def atype = sequenceType | primitiveType | functionType | caseType
+  def nonOptType = sequenceType | primitiveType | functionType | caseType
+  def atype = optionType | sequenceType | primitiveType | functionType | caseType
 
   def primitiveType = byteType | charType | shortType | intType | longType |floatType | doubleType | stringType
 
@@ -258,6 +259,8 @@ class Parser extends JavaTokenParsers {
 
 
   def caseType = ident ^^ {case ident => CaseType(ident)}
+
+  def optionType = "Option"~"["~nonOptType~"]" ^^ {case "Option"~"["~nonOptType ~"]" => OptionType(nonOptType)}
 
   def arrayType = primitiveArrayType | caseArrayType
   def primitiveArrayType  = "Array["~primitiveType~"]"  ^^ { case "Array["~primitiveType~"]" => ArrayType(primitiveType)}
